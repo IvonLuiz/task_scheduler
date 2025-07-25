@@ -47,7 +47,6 @@ class SimpleClient:
         self.is_connected = False
         if self.socket:
             self.socket.close()
-        print("🔌 Disconnected from server")
     
     def send_command(self, command):
         """Send a command to the server and get response"""
@@ -199,7 +198,6 @@ def main():
         pass
     finally:
         client.disconnect()
-        print("\n👋 Client session ended")
 
 
 if __name__ == "__main__":

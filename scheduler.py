@@ -37,7 +37,7 @@ class Scheduler:
                     # Pad with spaces for ticks that have already passed
                     self.gantt_chart_data[task.name] = [' '] * self.current_tick
                 
-                log_msg = f"✅ Task {task.name} added (P={task.period}, E={task.execution_time})"
+                log_msg = f"Task {task.name} added (P={task.period}, E={task.execution_time})"
                 self.event_log.append(log_msg)
             else:
                 # This case should probably not happen with auto-naming, but good to have
@@ -80,7 +80,7 @@ class Scheduler:
                 if task not in self.ready_queue:
                     self.ready_queue.append(task)
                 
-                log_msg = f"📋 {task} released at tick {self.current_tick}"
+                log_msg = f"{task} released at tick {self.current_tick}"
                 self.event_log.append(log_msg)
     
     def _check_deadlines(self):
@@ -167,7 +167,13 @@ class Scheduler:
             print(f"{name:<5} |{line}")
         
         # Draw timeline ruler
-        ruler = "".join(str(i % 10) for i in range(start_tick, end_tick))
+        ruler_parts = []
+        for i in range(start_tick, end_tick):
+            if i > 0 and i % 10 == 0:
+                ruler_parts.append('|')
+            else:
+                ruler_parts.append('.')
+        ruler = "".join(ruler_parts)
         print("------+" + ruler)
         
         # Draw event log
@@ -184,64 +190,3 @@ class Scheduler:
             "ready_queue": [str(task) for task in self.ready_queue],
             "total_tasks": len(self.tasks)
         }
-    
-    def generate_final_report(self):
-        """Generate final execution report"""
-        if not self.execution_history:
-            return "No execution history"
-        
-        report = []
-        report.append("\n" + "="*60)
-        report.append("📊 FINAL EXECUTION REPORT")
-        report.append("="*60)
-        report.append(f"Algorithm: {self.algorithm}")
-        report.append(f"Total ticks: {len(self.execution_history)}")
-        report.append("")
-        
-        # Timeline
-        report.append("📈 Execution Timeline:")
-        timeline = "".join(self.execution_history[:50])  # First 50 ticks
-        ticks = "".join(str(i % 10) for i in range(min(50, len(self.execution_history))))
-        report.append(f"Ticks: {ticks}")
-        report.append(f"Tasks: {timeline}")
-        
-        if len(self.execution_history) > 50:
-            report.append(f"... (showing first 50 of {len(self.execution_history)} ticks)")
-        report.append("")
-        
-        # Statistics
-        task_counts = {}
-        idle_count = 0
-        for task in self.execution_history:
-            if task == "idle":
-                idle_count += 1
-            else:
-                task_counts[task] = task_counts.get(task, 0) + 1
-        
-        total_ticks = len(self.execution_history)
-        report.append("📊 Execution Statistics:")
-        for task, count in sorted(task_counts.items()):
-            percentage = (count / total_ticks) * 100
-            report.append(f"   {task}: {count}/{total_ticks} ticks ({percentage:.1f}%)")
-        
-        if idle_count > 0:
-            idle_percentage = (idle_count / total_ticks) * 100
-            report.append(f"   idle: {idle_count}/{total_ticks} ticks ({idle_percentage:.1f}%)")
-        
-        # Deadline misses
-        report.append("")
-        report.append("❌ Deadline Misses:")
-        any_misses = False
-        for task in self.tasks.values():
-            if task.deadline_misses:
-                any_misses = True
-                for miss_instance in task.deadline_misses:
-                    # We need to find the release time for that specific instance to calculate the deadline
-                    # This is a simplification; for a perfect report, we'd need to store historical release times.
-                    # Here, we'll just note the instance that missed.
-                    report.append(f"   {task.name}[{miss_instance}] missed its deadline.")
-        
-        if not any_misses:
-            report.append("   ✅ No deadline misses!")
-        
-        return "\n".join(report)

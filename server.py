@@ -23,6 +23,32 @@ class SchedulerServer:
         self.client_connections = []
         self.task_counter = 0  # For auto-naming tasks T1, T2, T3...
         
+    def load_tasks_from_file(self, filepath):
+        """Load initial tasks from a JSON file"""
+        try:
+            with open(filepath, 'r') as f:
+                tasks_data = json.load(f)
+            
+            for task_info in tasks_data:
+                name = task_info['name']
+                # JSON might have floats, scheduler uses ints
+                period = int(task_info['period'])
+                execution_time = int(task_info['execution_time'])
+                deadline = int(task_info.get('deadline', period))
+                
+                task = Task(name, period, execution_time, deadline)
+                self.scheduler.add_task(task)
+            
+            log_msg = f"Loaded {len(tasks_data)} tasks from {filepath}"
+            self.scheduler.event_log.append(log_msg)
+
+        except FileNotFoundError:
+            print(f"Error: Initial tasks file not found at {filepath}", file=sys.stderr)
+            sys.exit(1)
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"Error parsing tasks file {filepath}: {e}", file=sys.stderr)
+            sys.exit(1)
+
     def start_server(self):
         """Start the scheduler server"""
         try:
@@ -34,10 +60,10 @@ class SchedulerServer:
             self.is_running = True
             self.scheduler.start()
             
-            print(f"🚀 Server started on {self.host}:{self.port}")
-            print(f"📋 Using {self.scheduler.algorithm} algorithm")
-            print("🔗 Waiting for client connections...")
-            print("💡 Use Ctrl+C to stop the server")
+            print(f"Server started on {self.host}:{self.port}")
+            print(f"Using {self.scheduler.algorithm} algorithm")
+            print("Waiting for client connections...")
+            print("Use Ctrl+C to stop the server")
             
             # Accept client connections
             while self.is_running:
@@ -53,11 +79,11 @@ class SchedulerServer:
                     
                 except socket.error:
                     if self.is_running:
-                        print("❌ Socket error occurred")
+                        print("Socket error occurred")
                     break
                     
         except Exception as e:
-            print(f"❌ Server error: {e}")
+            print(f"Server error: {e}")
         finally:
             self.stop_server()
     
@@ -93,13 +119,13 @@ class SchedulerServer:
                     
         except Exception as e:
             # This will be logged to the server console, not sent to client
-            print(f"\n❌ Client handler error for {address}: {e}")
+            print(f"\nClient handler error for {address}: {e}")
         finally:
             if client_socket in self.client_connections:
                 self.client_connections.remove(client_socket)
             client_socket.close()
             # Log disconnection on the server
-            log_msg = f"🔌 Client {address} disconnected"
+            log_msg = f"Client {address} disconnected"
             self.scheduler.event_log.append(log_msg)
     
     def send_to_client(self, client_socket, data):
@@ -173,7 +199,7 @@ class SchedulerServer:
     
     def stop_server(self):
         """Stop the scheduler server"""
-        print("\n🛑 Stopping scheduler server...")
+        print("\nStopping scheduler server...")
         self.is_running = False
         
         if self.scheduler:
@@ -207,6 +233,7 @@ def main():
     parser = argparse.ArgumentParser(description="Simple Task Scheduler Server")
     parser.add_argument("--port", "-p", type=int, default=8888, help="Server port (default: 8888)")
     parser.add_argument("--algorithm", "-a", choices=["RM", "EDF"], default="RM", help="Scheduling algorithm (default: RM)")
+    parser.add_argument("--tasks", "-t", type=str, help="Path to a JSON file with initial tasks")
     
     args = parser.parse_args()
     
@@ -216,13 +243,17 @@ def main():
         algorithm=args.algorithm
     )
     
+    # Load initial tasks if file is provided
+    if args.tasks:
+        server.load_tasks_from_file(args.tasks)
+    
     try:
         server.start_server()
         
     except KeyboardInterrupt:
-        print("\n👋 Server interrupted by user")
+        print("\nServer interrupted by user")
     except Exception as e:
-        print(f"❌ Server error: {e}")
+        print(f"Server error: {e}")
     finally:
         server.stop_server()
 
