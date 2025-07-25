@@ -1,9 +1,9 @@
 [
     {
         "name": "T1",
-        "period": 3,
-        "execution_time": 1,
-        "deadline": 2
+        "period": 20,
+        "execution_time": 3,
+        "deadline": 20
     },
     {
         "name": "T2",
@@ -13,6 +13,6 @@
     {
         "name": "T3",
         "period": 10,
-        "execution_time": 1
+        "execution_time": 2
     }
 ]

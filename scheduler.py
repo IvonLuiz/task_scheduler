@@ -99,7 +99,29 @@ class Scheduler:
                         self.event_log.append(log_msg)
     
     def _execute_task(self):
-        """Execute the highest priority task"""
+        """Execute the highest priority task with preemption"""
+        # For Rate Monotonic: Check if we need to preempt current task
+        if self.algorithm == "RM" and self.running_task and self.ready_queue:
+            highest_priority_task = min(self.ready_queue, key=lambda t: t.period)
+            # Preempt if a higher priority task (shorter period) is ready
+            if highest_priority_task.period < self.running_task.period:
+                # Put current task back in ready queue
+                if self.running_task not in self.ready_queue:
+                    self.ready_queue.append(self.running_task)
+                self.running_task = highest_priority_task
+        
+        # For EDF: Check if we need to preempt current task  
+        elif self.algorithm == "EDF" and self.running_task and self.ready_queue:
+            earliest_deadline_task = min(self.ready_queue, key=lambda t: t.release_time + t.deadline)
+            current_deadline = self.running_task.release_time + self.running_task.deadline
+            earliest_deadline = earliest_deadline_task.release_time + earliest_deadline_task.deadline
+            # Preempt if a task with earlier deadline is ready
+            if earliest_deadline < current_deadline:
+                # Put current task back in ready queue
+                if self.running_task not in self.ready_queue:
+                    self.ready_queue.append(self.running_task)
+                self.running_task = earliest_deadline_task
+        
         # Select task if none is running
         if not self.running_task:
             self.running_task = self._select_task()
@@ -142,7 +164,6 @@ class Scheduler:
             elif task in self.ready_queue:
                 char = '░'  # Ready but not running
             
-            # Mark releases and deadlines
             if self.current_tick == task.next_release:
                 char = 'R' # Release
             if task.instance > 0 and self.current_tick == task.release_time + task.deadline:
@@ -156,7 +177,7 @@ class Scheduler:
         print(f"Scheduler running with {self.algorithm} algorithm | Current Tick: {self.current_tick}")
         print("-" * 80)
         
-        # Determine window for display (e.g., last 60 ticks)
+        # Determine window for display
         width = 70
         start_tick = max(0, self.current_tick - width + 1)
         end_tick = self.current_tick + 1
@@ -174,7 +195,7 @@ class Scheduler:
             else:
                 ruler_parts.append('.')
         ruler = "".join(ruler_parts)
-        print("------+" + ruler)
+        print("------" + ruler)
         
         # Draw event log
         print("-" * 80)
