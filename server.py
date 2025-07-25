@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Simple Task Scheduler Server
-
-Clean implementation with integer time ticks and real-time Gantt visualization.
-"""
-
 import socket
 import threading
 import json
@@ -101,7 +95,7 @@ class SchedulerServer:
             # Send welcome message
             welcome = {
                 "type": "welcome",
-                "message": f"Connected to Simple Task Scheduler",
+                "message": f"Connected to Task Scheduler",
                 "algorithm": self.scheduler.algorithm
             }
             self.send_to_client(client_socket, welcome)
@@ -232,7 +226,7 @@ def main():
     """Main function to start the scheduler server"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Simple Task Scheduler Server")
+    parser = argparse.ArgumentParser(description="Task Scheduler Server")
     parser.add_argument("--port", "-p", type=int, default=8888, help="Server port (default: 8888)")
     parser.add_argument("--algorithm", "-a", choices=["RM", "EDF"], default="RM", help="Scheduling algorithm (default: RM)")
     parser.add_argument("--tasks", "-t", type=str, help="Path to a JSON file with initial tasks")

@@ -1,13 +1,12 @@
 import threading
 import time
 from collections import deque
-from task import Task
 
 
 class Scheduler:
     def __init__(self, algorithm="RM"):
         """
-        Simple scheduler with integer time ticks.
+        Scheduler with integer time ticks.
         
         Args:
             algorithm: "RM" for Rate Monotonic or "EDF" for Earliest Deadline First

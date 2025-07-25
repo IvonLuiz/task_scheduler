@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
-"""
-Simple Task Scheduler Client
-
-Clean client for adding tasks with integer time periods.
-"""
-
 import socket
 import json
 import sys
 
 
-class SimpleClient:
+class Client:
     def __init__(self, host='localhost', port=8888):
         self.host = host
         self.port = port
@@ -29,8 +23,8 @@ class SimpleClient:
             if data:
                 message = json.loads(data.strip())
                 if message.get("type") == "welcome":
-                    print(f"✅ {message['message']}")
-                    print(f"📋 Algorithm: {message['algorithm']}")
+                    print(f"{message['message']}")
+                    print(f"Algorithm: {message['algorithm']}")
             
             return True
             
@@ -122,14 +116,14 @@ def main():
     """Main function for command line usage"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Simple Task Scheduler Client")
+    parser = argparse.ArgumentParser(description="Task Scheduler Client")
     parser.add_argument("--host", "-H", default="localhost", help="Server host (default: localhost)")
     parser.add_argument("--port", "-p", type=int, default=8888, help="Server port (default: 8888)")
     parser.add_argument("command", nargs="*", help="Command: add <period> <exec_time> [deadline] | status | list")
     
     args = parser.parse_args()
     
-    client = SimpleClient(args.host, args.port)
+    client = Client(args.host, args.port)
     
     if not client.connect():
         sys.exit(1)
@@ -158,7 +152,7 @@ def main():
         
         else:
             # Interactive mode
-            print("\n📋 Simple Task Scheduler Client")
+            print("\nTask Scheduler Client")
             print("Commands:")
             print("  add <period> <exec_time> [deadline]  - Add a new task")
             print("  status                               - Show current status")
