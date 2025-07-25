@@ -29,6 +29,7 @@ class SchedulerServer:
             with open(filepath, 'r') as f:
                 tasks_data = json.load(f)
             
+            max_task_num = 0
             for task_info in tasks_data:
                 name = task_info['name']
                 # JSON might have floats, scheduler uses ints
@@ -38,7 +39,14 @@ class SchedulerServer:
                 
                 task = Task(name, period, execution_time, deadline)
                 self.scheduler.add_task(task)
+
+                # Update task counter to avoid name collisions with client-added tasks
+                if name.startswith('T') and name[1:].isdigit():
+                    num = int(name[1:])
+                    if num > max_task_num:
+                        max_task_num = num
             
+            self.task_counter = max_task_num
             log_msg = f"Loaded {len(tasks_data)} tasks from {filepath}"
             self.scheduler.event_log.append(log_msg)
 
@@ -84,8 +92,6 @@ class SchedulerServer:
                     
         except Exception as e:
             print(f"Server error: {e}")
-        finally:
-            self.stop_server()
     
     def handle_client(self, client_socket, address):
         """Handle commands from a client"""
@@ -203,10 +209,6 @@ class SchedulerServer:
         self.is_running = False
         
         if self.scheduler:
-            # Generate and display final report
-            report = self.scheduler.generate_final_report()
-            print(report)
-            
             self.scheduler.stop()
         
         # Close all client connections
@@ -223,7 +225,7 @@ class SchedulerServer:
             except:
                 pass
         
-        print("✅ Server stopped")
+        print("Server stopped")
 
 
 def main():

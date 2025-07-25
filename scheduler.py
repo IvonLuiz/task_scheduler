@@ -58,7 +58,7 @@ class Scheduler:
         self.is_running = False
         if self.scheduler_thread:
             self.scheduler_thread.join()
-        print("\n🛑 Scheduler stopped")
+        print("\nScheduler stopped")
     
     def _scheduler_loop(self):
         """Main scheduler loop"""
@@ -153,7 +153,7 @@ class Scheduler:
         # Clear screen and redraw
         print("\033c", end="")
         
-        print(f"🚀 Scheduler running with {self.algorithm} algorithm | Current Tick: {self.current_tick}")
+        print(f"Scheduler running with {self.algorithm} algorithm | Current Tick: {self.current_tick}")
         print("-" * 80)
         
         # Determine window for display (e.g., last 60 ticks)
